@@ -1,0 +1,12 @@
+name: trial-tipping-env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - numpy
+  - matplotlib
+  - pandas
+  - tqdm
+  - pyyaml
+
