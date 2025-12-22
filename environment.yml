@@ -1,4 +1,4 @@
-name: trial-tipping-env
+name: tipping-env
 channels:
   - conda-forge
 dependencies:

@@ -1,6 +1,6 @@
-# Trial Tipping Paper Code — README (Terminal Quickstart)
+# Tipping Paper Code — README (Terminal Quickstart)
 
-This repository runs a simple agent-based simulation of green consumption tipping with:
+This repository runs a simple, but powerful, agent-based simulation of green consumption tipping with:
 - two firms (different “greenness” shares),
 - heterogeneous households,
 - habit formation + peer influence,
@@ -57,7 +57,7 @@ python3 main.py --cycles 100 --households 500 --seed 42 --tau 0.0 --sigma 0.0
 ### B) Policy-on for the whole run
 python3 main.py --cycles 100 --households 500 --seed 42 --tau 0.10 --sigma 0.05
 
-### C) Policy-on then policy-off (your counterfactual “switch-off” test)
+### C) Policy-on then policy-off (our counterfactual “switch-off” test)
 
 python3 main.py --cycles 100 --households 500 --seed 42 --tau 0.10 --sigma 0.05 --switch_cycle 60 --tau_after 0.0 --sigma_after 0.0
 
