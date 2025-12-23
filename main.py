@@ -6,6 +6,10 @@ from datetime import datetime
 from economy import Economy
 
 
+# =====================================================
+# Utilities
+# =====================================================
+
 def _ensure_dir(path: str) -> None:
     os.makedirs(path, exist_ok=True)
 
@@ -18,6 +22,10 @@ def _append_csv(path: str, fieldnames: list[str], row: dict) -> None:
             w.writeheader()
         w.writerow(row)
 
+
+# =====================================================
+# Simulation function
+# =====================================================
 
 def run_simulation(
     econ,
@@ -57,75 +65,45 @@ def run_simulation(
             tau_t = tau
             sigma_t = sigma
 
-        # run one cycle (IMPORTANT: your Economy.run_cycle must use tau_t, sigma_t)
+        # run one cycle
         shares = econ.run_cycle(tau=tau_t, sigma=sigma_t)
 
         # collect firm-side variables
         firm_data = {}
         for firm in econ.firms:
-             k = firm.firm_id
+            k = firm.firm_id
 
-             firm_data[f"price_{k}"] = firm.price
-             firm_data[f"markup_{k}"] = firm.markup
-             firm_data[f"unit_cost_{k}"] = firm.unit_cost(tau_t, sigma_t)
-
-            # quantities are recorded as totals in Economy.run_cycle
-             firm_data[f"quantity_{k}"] = ( firm.quantity_history[-1] if firm.quantity_history else None)
-
-             firm_data[f"profit_{k}"] = (
-             firm.profit_history[-1] if firm.profit_history else None )
-
-             firm_data[f"elasticity_{k}"] = (
-                       firm.last_elasticity
-                       if hasattr(firm, "last_elasticity")
-                       else firm.estimate_elasticity_last_two()
-             )
+            firm_data[f"price_{k}"] = firm.price
+            firm_data[f"markup_{k}"] = firm.markup
+            firm_data[f"unit_cost_{k}"] = firm.unit_cost(tau_t, sigma_t)
+            firm_data[f"quantity_{k}"] = (
+                firm.quantity_history[-1] if firm.quantity_history else None
+            )
+            firm_data[f"profit_{k}"] = (
+                firm.profit_history[-1] if firm.profit_history else None
+            )
+            firm_data[f"elasticity_{k}"] = (
+                firm.last_elasticity
+                if hasattr(firm, "last_elasticity")
+                else firm.estimate_elasticity_last_two()
+            )
 
         peer = econ.peer_signal if hasattr(econ, "peer_signal") else None
         s1 = shares.get(1, 0.0)
         s2 = shares.get(2, 0.0)
 
-        # --- optional: append cycle record to timeseries.csv ---
+        # append cycle record
         if timeseries_csv is not None and run_id is not None:
             _append_csv(
                 timeseries_csv,
-                fieldnames = [
-                       # identifiers
-                        "run_id",
-                        "cycle",
-
-                        # policy state
-                        "tau_t",
-                        "sigma_t",
-                        "switch_cycle",
-                        "tau",
-                        "sigma",
-                        "tau_after",
-                        "sigma_after",
-
-                        # market outcomes
-                        "s1",
-                        "s2",
-                        "peer_signal",
-
-                        # firm 1
-                        "price_1",
-                        "markup_1",
-                        "unit_cost_1",
-                        "quantity_1",
-                        "profit_1",
-                        "elasticity_1",
-
-                        # firm 2
-                        "price_2",
-                        "markup_2",
-                        "unit_cost_2",
-                        "quantity_2",
-                        "profit_2",
-                        "elasticity_2",
-                    ]
-
-                ,
+                fieldnames=[
+                    "run_id", "cycle",
+                    "tau_t", "sigma_t",
+                    "switch_cycle", "tau", "sigma", "tau_after", "sigma_after",
+                    "s1", "s2", "peer_signal",
+                    "price_1", "markup_1", "unit_cost_1", "quantity_1", "profit_1", "elasticity_1",
+                    "price_2", "markup_2", "unit_cost_2", "quantity_2", "profit_2", "elasticity_2",
+                ],
                 row={
                     "run_id": run_id,
                     "cycle": t,
@@ -139,7 +117,7 @@ def run_simulation(
                     "s1": s1,
                     "s2": s2,
                     "peer_signal": peer if peer is not None else "",
-                    **firm_data
+                    **firm_data,
                 },
             )
 
@@ -148,8 +126,6 @@ def run_simulation(
 
     if verbose:
         print("\n--- Simulation end ---")
-
-        # tipping summary
         if getattr(econ, "tipping_point", None) is None:
             print("Tipping point: NOT detected.")
         else:
@@ -158,6 +134,10 @@ def run_simulation(
     return econ
 
 
+# =====================================================
+# MAIN
+# =====================================================
+
 def main():
     parser = argparse.ArgumentParser(description="Run sustainability tipping ABM (terminal).")
 
@@ -165,67 +145,32 @@ def main():
     parser.add_argument("--households", type=int, default=500)
     parser.add_argument("--seed", type=int, default=None)
 
-    # baseline policy
-    parser.add_argument("--tau", type=float, default=0.10, help="Carbon tax on brown component")
-    parser.add_argument("--sigma", type=float, default=0.05, help="Subsidy on green component")
+    # policy
+    parser.add_argument("--tau", type=float, default=0.10)
+    parser.add_argument("--sigma", type=float, default=0.05)
+    parser.add_argument("--tau_after", type=float, default=0.0)
+    parser.add_argument("--sigma_after", type=float, default=0.0)
 
-    # counterfactual irreversibility test (policy switch)
-    parser.add_argument(
-        "--switch_cycle",
-        type=int,
-        default=None,
-        help="Cycle at which to switch policy (counterfactual test).",
-    )
-    parser.add_argument(
-        "--tau_after",
-        type=float,
-        default=0.0,
-        help="Tau after switch_cycle (e.g., 0.0 to remove tax).",
-    )
-    parser.add_argument(
-        "--sigma_after",
-        type=float,
-        default=0.0,
-        help="Sigma after switch_cycle (e.g., 0.0 to remove subsidy).",
-    )
+    parser.add_argument("--switch_cycles", nargs="*", type=int, default=None)
 
-    # run multiple switch cycles in one command (e.g. 30 and 80)
-    parser.add_argument(
-        "--switch_cycles",
-        type=int,
-        nargs="*",
-        default=None,
-        help="Run multiple switch cycles in one command, e.g. --switch_cycles 30 80",
-    )
+    # output
+    parser.add_argument("--save_csv", action="store_true")
+    parser.add_argument("--results_dir", type=str, default="results")
+    parser.add_argument("--post_window", type=int, default=20)
 
-    # saving and hysteresis settings
-    parser.add_argument(
-        "--save_csv",
-        action="store_true",
-        help="Append results to results/timeseries.csv and results/runs_summary.csv",
-    )
-    parser.add_argument(
-        "--results_dir",
-        type=str,
-        default="results",
-        help="Folder for CSV outputs (default: results)",
-    )
-    parser.add_argument(
-        "--post_window",
-        type=int,
-        default=20,
-        help="Number of final cycles used for post-policy mean (default: 20)",
-    )
+    # ------------------------------
+    # Monte Carlo (NEW)
+    # ------------------------------
+    parser.add_argument("--mc", action="store_true")
+    parser.add_argument("--mc_runs", type=int, default=20)
+    parser.add_argument("--seed_start", type=int, default=1)
 
     args = parser.parse_args()
 
-    # Decide which switch cycles to run
-    if args.switch_cycles is not None:
-        switch_list = args.switch_cycles
-    else:
-        switch_list = [args.switch_cycle]  # may be [None]
+    # switch cycles
+    switch_list = args.switch_cycles if args.switch_cycles is not None else [None]
 
-    # Prepare CSV paths
+    # CSV paths
     if args.save_csv:
         _ensure_dir(args.results_dir)
         timeseries_csv = os.path.join(args.results_dir, "timeseries.csv")
@@ -234,90 +179,100 @@ def main():
         timeseries_csv = None
         summary_csv = None
 
-    # --- baseline run for hysteresis (same seed, tau=sigma=0, no switch) ---
-    econ_base = Economy(n_households=args.households, seed=args.seed)
-    econ_base = run_simulation(
-        econ=econ_base,
-        n_cycles=args.cycles,
-        tau=0.0,
-        sigma=0.0,
-        switch_cycle=None,
-        tau_after=None,
-        sigma_after=None,
-        verbose=False,      # keep baseline quiet
-        run_id=None,        # baseline not written to CSV by default
-        timeseries_csv=None,
-    )
+    # seeds
+    if args.mc:
+        seeds = list(range(args.seed_start, args.seed_start + args.mc_runs))
+        print(f"Running Monte Carlo with {len(seeds)} seeds")
+    else:
+        seeds = [args.seed]
 
-    # baseline mean over last M cycles
-    M = args.post_window
-    base_tail = econ_base.market_shares[-M:]
-    s_base_mean = sum(d.get(1, 0.0) for d in base_tail) / max(len(base_tail), 1)
+    # =================================================
+    # OUTER LOOP OVER SEEDS (Monte Carlo)
+    # =================================================
+    for run_idx, seed in enumerate(seeds, start=1):
 
-    # --- policy runs (one per switch cycle) ---
-    for sc in switch_list:
-        econ = Economy(n_households=args.households, seed=args.seed)
+        if args.mc:
+            print(f"[MC {run_idx}/{len(seeds)}] seed={seed}")
 
-        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        run_id = (
-            f"{stamp}_seed{args.seed}_N{args.households}_T{args.cycles}"
-            f"_tau{args.tau}_sig{args.sigma}_sc{sc}_tauA{args.tau_after}_sigA{args.sigma_after}"
-        )
-
-        econ = run_simulation(
-            econ=econ,
+        # --- baseline (tau=sigma=0) ---
+        econ_base = Economy(n_households=args.households, seed=seed)
+        econ_base = run_simulation(
+            econ_base,
             n_cycles=args.cycles,
-            tau=args.tau,
-            sigma=args.sigma,
-            switch_cycle=sc,
-            tau_after=args.tau_after,
-            sigma_after=args.sigma_after,
-            verbose=True,
-            run_id=run_id,
-            timeseries_csv=timeseries_csv,
+            tau=0.0,
+            sigma=0.0,
+            switch_cycle=None,
+            tau_after=None,
+            sigma_after=None,
+            verbose=False,
+            run_id=None,
+            timeseries_csv=None,
         )
 
-        # post mean over last M cycles
-        post_tail = econ.market_shares[-M:]
-        s_post_mean = sum(d.get(1, 0.0) for d in post_tail) / max(len(post_tail), 1)
+        M = args.post_window
+        base_tail = econ_base.market_shares[-M:]
+        s_base_mean = sum(d.get(1, 0.0) for d in base_tail) / max(len(base_tail), 1)
 
-        # hysteresis residual uplift
-        H_delta = s_post_mean - s_base_mean
+        # --- policy runs ---
+        for sc in switch_list:
+            econ = Economy(n_households=args.households, seed=seed)
 
-        # append one-row summary
-        if summary_csv is not None:
-            _append_csv(
-                summary_csv,
-                fieldnames=[
-                    "run_id", "seed", "households", "cycles",
-                    "tau", "sigma", "switch_cycle", "tau_after", "sigma_after",
-                    "post_window",
-                    "tipping_point",
-                    "s_base_mean", "s_post_mean", "H_delta",
-                ],
-                row={
-                    "run_id": run_id,
-                    "seed": args.seed if args.seed is not None else "",
-                    "households": args.households,
-                    "cycles": args.cycles,
-                    "tau": args.tau,
-                    "sigma": args.sigma,
-                    "switch_cycle": sc if sc is not None else "",
-                    "tau_after": args.tau_after,
-                    "sigma_after": args.sigma_after,
-                    "post_window": M,
-                    "tipping_point": econ.tipping_point if getattr(econ, "tipping_point", None) is not None else "",
-                    "s_base_mean": s_base_mean,
-                    "s_post_mean": s_post_mean,
-                    "H_delta": H_delta,
-                },
+            stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            run_id = (
+                f"{stamp}_seed{seed}_N{args.households}_T{args.cycles}"
+                f"_tau{args.tau}_sig{args.sigma}_sc{sc}_tauA{args.tau_after}_sigA{args.sigma_after}"
             )
 
-        # quick console check
-        print(
-            f"\nHysteresis (post-window={M}): "
-            f"s_base_mean={s_base_mean:.4f} | s_post_mean={s_post_mean:.4f} | H_delta={H_delta:.4f}\n"
-        )
+            econ = run_simulation(
+                econ,
+                n_cycles=args.cycles,
+                tau=args.tau,
+                sigma=args.sigma,
+                switch_cycle=sc,
+                tau_after=args.tau_after,
+                sigma_after=args.sigma_after,
+                verbose=True,
+                run_id=run_id,
+                timeseries_csv=timeseries_csv,
+            )
+
+            post_tail = econ.market_shares[-M:]
+            s_post_mean = sum(d.get(1, 0.0) for d in post_tail) / max(len(post_tail), 1)
+            H_delta = s_post_mean - s_base_mean
+
+            if summary_csv is not None:
+                _append_csv(
+                    summary_csv,
+                    fieldnames=[
+                        "run_id", "seed", "households", "cycles",
+                        "tau", "sigma", "switch_cycle", "tau_after", "sigma_after",
+                        "post_window", "tipping_point",
+                        "s_base_mean", "s_post_mean", "H_delta",
+                    ],
+                    row={
+                        "run_id": run_id,
+                        "seed": seed,
+                        "households": args.households,
+                        "cycles": args.cycles,
+                        "tau": args.tau,
+                        "sigma": args.sigma,
+                        "switch_cycle": sc if sc is not None else "",
+                        "tau_after": args.tau_after,
+                        "sigma_after": args.sigma_after,
+                        "post_window": M,
+                        "tipping_point": econ.tipping_point if getattr(econ, "tipping_point", None) is not None else "",
+                        "s_base_mean": s_base_mean,
+                        "s_post_mean": s_post_mean,
+                        "H_delta": H_delta,
+                    },
+                )
+
+            print(
+                f"\nHysteresis (post-window={M}): "
+                f"s_base_mean={s_base_mean:.4f} | "
+                f"s_post_mean={s_post_mean:.4f} | "
+                f"H_delta={H_delta:.4f}\n"
+            )
 
 
 if __name__ == "__main__":
