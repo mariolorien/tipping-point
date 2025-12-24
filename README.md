@@ -74,3 +74,12 @@ python3 main.py --cycles 100 --households 500 --seed 42 \
   --tau_after 0.0 --sigma_after 0.0 \
   --switch_cycles 30 80 \
   --save_csv
+
+
+python main.py --mc --mc_runs 20 --seed_start 1 \
+  --households 500 --cycles 100 \
+  --tau 0.10 --sigma 0.05 \
+  --tau_after 0.0 --sigma_after 0.0 \
+  --rho 0.1 --gamma 0.5 --delta 0.5 \
+  --switch_cycles 90 --save_csv \
+  --results_dir sens_rho_01

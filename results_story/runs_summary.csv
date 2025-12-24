@@ -1,0 +1,2 @@
+run_id,seed,households,cycles,tau,sigma,switch_cycle,tau_after,sigma_after,post_window,tipping_point,s_base_mean,s_post_mean,H_delta
+20251223-171654_seed7_N500_T100_tau0.1_sig0.05_sc90_tauA0.0_sigA0.0,7,500,100,0.1,0.05,90,0.0,0.0,20,3,0.5347799304400034,0.5946268107460018,0.059846880305998384

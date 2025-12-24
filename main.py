@@ -150,6 +150,10 @@ def main():
     parser.add_argument("--sigma", type=float, default=0.05)
     parser.add_argument("--tau_after", type=float, default=0.0)
     parser.add_argument("--sigma_after", type=float, default=0.0)
+    parser.add_argument("--rho", type=float, default=0.2)
+    parser.add_argument("--gamma", type=float, default=0.5)
+    parser.add_argument("--delta", type=float, default=0.5)
+
 
     parser.add_argument("--switch_cycles", nargs="*", type=int, default=None)
 
@@ -195,7 +199,8 @@ def main():
             print(f"[MC {run_idx}/{len(seeds)}] seed={seed}")
 
         # --- baseline (tau=sigma=0) ---
-        econ_base = Economy(n_households=args.households, seed=seed)
+        econ_base = Economy(n_households=args.households, seed=seed,  rho=args.rho, gamma=args.gamma,
+                    delta=args.delta,)
         econ_base = run_simulation(
             econ_base,
             n_cycles=args.cycles,
@@ -215,7 +220,7 @@ def main():
 
         # --- policy runs ---
         for sc in switch_list:
-            econ = Economy(n_households=args.households, seed=seed)
+            econ = Economy(n_households=args.households, seed=seed, rho=args.rho,gamma=args.gamma, delta=args.delta)
 
             stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             run_id = (
@@ -247,7 +252,7 @@ def main():
                         "run_id", "seed", "households", "cycles",
                         "tau", "sigma", "switch_cycle", "tau_after", "sigma_after",
                         "post_window", "tipping_point",
-                        "s_base_mean", "s_post_mean", "H_delta",
+                        "s_base_mean", "s_post_mean", "H_delta","rho", "gamma", "delta",
                     ],
                     row={
                         "run_id": run_id,
@@ -264,6 +269,9 @@ def main():
                         "s_base_mean": s_base_mean,
                         "s_post_mean": s_post_mean,
                         "H_delta": H_delta,
+                        "rho": args.rho,
+                        "gamma": args.gamma,
+                        "delta": args.delta,
                     },
                 )
 
