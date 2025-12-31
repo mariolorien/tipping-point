@@ -103,6 +103,7 @@ def run_simulation(
                     "s1", "s2", "peer_signal",
                     "price_1", "markup_1", "unit_cost_1", "quantity_1", "profit_1", "elasticity_1",
                     "price_2", "markup_2", "unit_cost_2", "quantity_2", "profit_2", "elasticity_2",
+                    "rho", "gamma", "delta",
                 ],
                 row={
                     "run_id": run_id,
@@ -116,6 +117,9 @@ def run_simulation(
                     "sigma_after": sigma_after if sigma_after is not None else "",
                     "s1": s1,
                     "s2": s2,
+                    "rho": econ.rho,
+                    "gamma": econ.gamma,
+                    "delta": econ.delta,
                     "peer_signal": peer if peer is not None else "",
                     **firm_data,
                 },

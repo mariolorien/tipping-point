@@ -1,3 +1,4 @@
+
 import numpy as np
 from firm import Firm
 from household import Household
@@ -48,11 +49,11 @@ class Economy:
           Interpreted as price penalty weight (positive), where lam_mu can be negative
           but the draw is still strictly positive (because lognormal > 0).
 
-        Shared behavioural parameters (passed to every Household):
-        - rho   : habit update speed (higher = faster habit adjustment)
-        - gamma : habit weight in utility
-        - delta : peer influence weight in utility
+       Shared behavioural parameters (passed to every Household):
+        - rho   : habit adjustment speed (controls how quickly habit updates toward last period’s choice)
+        - delta : social reinforcement / salience weight in utility (weights the contemporaneous peer_signal term)
 
+   
         Notes on initialisation:
         - Firms are created first, then initial prices are set at tau=0, sigma=0 (pre-policy baseline).
         - Households are created next and their habit dictionaries are initialised once firm IDs are known.

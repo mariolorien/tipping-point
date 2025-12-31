@@ -1,0 +1,2 @@
+tau,sigma,tau_after,sigma_after,switch_cycle,rho,gamma,delta,n_runs,H_mean,H_median,H_std,H_min,H_max,share_positive,s_base_mean,s_post_mean
+0.1,0.05,0.0,0.0,90,0.3,0.5,0.5,20,0.00440799118399901,0.00257799484399945,0.007205804552737513,-0.0085539828919998,0.0203779592439969,0.9,0.534865930268004,0.539273921452003
