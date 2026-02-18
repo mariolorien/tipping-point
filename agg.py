@@ -2,7 +2,7 @@ import pandas as pd
 from pathlib import Path
 
 
-RESULTS_DIR = Path.home() / "Desktop" / "Tipping-point" / "Results" / "sens_delta_07"
+RESULTS_DIR = Path.home() / "Desktop" / "Tipping-point" / "Results" / "New_Late_Policy_Withdraw_Scenario" 
 SUMMARY_FILE = RESULTS_DIR / "runs_summary.csv"
 TIMESERIES_FILE = RESULTS_DIR / "timeseries.csv"
 
@@ -13,7 +13,7 @@ summary = pd.read_csv(SUMMARY_FILE)
 
 num_cols = [
     "seed", "households", "cycles",
-    "tau", "sigma", "tau_after", "sigma_af ter",
+    "tau", "sigma", "tau_after", "sigma_after",
     "switch_cycle", "post_window",
     "s_base_mean", "s_post_mean", "H_delta",
     "rho", "gamma", "delta",

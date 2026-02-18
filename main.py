@@ -6,10 +6,6 @@ from datetime import datetime
 from economy import Economy
 
 
-# =====================================================
-# Utilities
-# =====================================================
-
 def _ensure_dir(path: str) -> None:
     os.makedirs(path, exist_ok=True)
 
@@ -23,9 +19,6 @@ def _append_csv(path: str, fieldnames: list[str], row: dict) -> None:
         w.writerow(row)
 
 
-# =====================================================
-# Simulation function
-# =====================================================
 
 def run_simulation(
     econ,
