@@ -2,7 +2,7 @@ import pandas as pd
 from pathlib import Path
 
 
-RESULTS_DIR = Path.home() / "Desktop" / "Tipping-point" / "Results" / "New_Late_Policy_Withdraw_Scenario" 
+RESULTS_DIR = Path.home() / "Desktop" / "Tipping-point" / "Results" / "Nonlinear_Social_Scenario" 
 SUMMARY_FILE = RESULTS_DIR / "runs_summary.csv"
 TIMESERIES_FILE = RESULTS_DIR / "timeseries.csv"
 

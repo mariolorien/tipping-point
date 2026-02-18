@@ -9,7 +9,7 @@ class Household:
       q[k] = quantity bought from firm k at time t, with sum_k q[k] = 1
     """
 
-    def __init__(self, household_id, beta, eta, lam, rho=0.2, gamma=0.5, delta=0.5):
+    def __init__(self, household_id, beta, eta, lam, rho=0.2, gamma=0.5, delta=0.5, peer_threshold=None, peer_steepness=20.0):
         self.household_id = household_id
         self.beta = beta  # Baseline preference for Firm 1 (Greener firm) - Pre Policy Tastes
         self.eta = eta # Baseline preference for Firm 2 (Less green firm) - Pre Policy Tastes
@@ -27,6 +27,8 @@ class Household:
 
         # Habit state 
         self.habit = None
+        self.peer_threshold = peer_threshold 
+        self.peer_steepness = peer_steepness
 
         """
         Note for Reviewers: 
@@ -188,11 +190,23 @@ class Household:
         if g is None:
             return self.delta * float(peer_signal)
 
-        total = 0.0
-        for k in q:
-            total += g[k] * q[k]
-        return self.delta * float(peer_signal) * total
+        # ----- NEW: Nonlinear threshold option -----
+        if self.peer_threshold is not None:
+            k = self.peer_steepness
+            q_threshold = self.peer_threshold
+            peer_effect = 1.0 / (1.0 + np.exp(-k * (peer_signal - q_threshold)))
+        else:
+            peer_effect = float(peer_signal)
+        # -------------------------------------------
 
+        if g is None:
+            return self.delta * peer_effect
+
+        total = 0.0
+        for k_key in q:
+            total += g[k_key] * q[k_key]
+
+        return self.delta * peer_effect * total
         """
         Note for Reviewers:    
         Positive element of the Utility Function that captures peer (social) influence.

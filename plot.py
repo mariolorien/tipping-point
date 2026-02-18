@@ -4,7 +4,7 @@ from pathlib import Path
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
 
 # ---------------- Configuration ----------------
-BASE_DIR = Path.home() / "Desktop" / "Tipping-point" / "Results" / "New_Late_Policy_Withdraw_Scenario" / "aggregated"
+BASE_DIR = Path.home() / "Desktop" / "Tipping-point" / "Results" / "Nonlinear_Social_Scenario" / "aggregated"
 
 SUMMARY_FILE = BASE_DIR / "scenario_level_summary.csv"
 TIMESERIES_FILE = BASE_DIR / "scenario_level_timeseries.csv"

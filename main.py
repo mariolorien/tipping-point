@@ -150,6 +150,10 @@ def main():
     parser.add_argument("--rho", type=float, default=0.2)
     parser.add_argument("--gamma", type=float, default=0.5)
     parser.add_argument("--delta", type=float, default=0.5)
+    parser.add_argument("--peer_threshold", type=float, default=None,
+                    help="Social threshold q for nonlinear peer effect (default: None = linear)")
+    parser.add_argument("--peer_steepness", type=float, default=20.0,
+                    help="Steepness k of nonlinear peer sigmoid (default: 20)")
 
 
     parser.add_argument("--switch_cycles", nargs="*", type=int, default=None)
@@ -160,7 +164,7 @@ def main():
     parser.add_argument("--post_window", type=int, default=20)
 
     # ------------------------------
-    # Monte Carlo (NEW)
+    # Monte Carlo 
     # ------------------------------
     parser.add_argument("--mc", action="store_true")
     parser.add_argument("--mc_runs", type=int, default=20)
@@ -187,9 +191,7 @@ def main():
     else:
         seeds = [args.seed]
 
-    # =================================================
-    # OUTER LOOP OVER SEEDS (Monte Carlo)
-    # =================================================
+
     for run_idx, seed in enumerate(seeds, start=1):
 
         if args.mc:
@@ -197,7 +199,7 @@ def main():
 
         # --- baseline (tau=sigma=0) ---
         econ_base = Economy(n_households=args.households, seed=seed,  rho=args.rho, gamma=args.gamma,
-                    delta=args.delta,)
+                    delta=args.delta, peer_threshold=args.peer_threshold, peer_steepness=args.peer_steepness)
         econ_base = run_simulation(
             econ_base,
             n_cycles=args.cycles,
@@ -217,7 +219,7 @@ def main():
 
         # --- policy runs ---
         for sc in switch_list:
-            econ = Economy(n_households=args.households, seed=seed, rho=args.rho,gamma=args.gamma, delta=args.delta)
+            econ = Economy(n_households=args.households, seed=seed, rho=args.rho,gamma=args.gamma, delta=args.delta, peer_threshold=args.peer_threshold, peer_steepness=args.peer_steepness)
 
             stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             run_id = (

@@ -35,7 +35,9 @@ class Economy:
         eta_scale=1.0,
         rho=0.2,
         gamma=0.5,
-        delta=0.5
+        delta=0.5, 
+        peer_threshold=None, 
+        peer_steepness=20.0,
     ):
         """
         Initialise the economy, create agents, and set initial conditions.
@@ -79,6 +81,8 @@ class Economy:
         self.rho = rho
         self.gamma = gamma
         self.delta = delta
+        self.peer_threshold = peer_threshold 
+        self.peer_steepness = peer_steepness
 
         # Peer signal is a scalar social norm, updated each cycle (start neutral at t=0)
         self.peer_signal = 0.0
@@ -150,7 +154,9 @@ class Economy:
                 lam=float(lams[i]),   # price penalty weight
                 rho=self.rho,         # habit update speed
                 gamma=self.gamma,     # habit utility weight
-                delta=self.delta,     # peer utility weight
+                delta=self.delta, 
+                peer_threshold = self.peer_threshold, 
+                peer_steepness = self.peer_steepness,   
             )
 
     def init_household_habits(self):
